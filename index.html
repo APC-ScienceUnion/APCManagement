@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A.P.C.科普组工作安排一览</title>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --primary-light: #93C5FD;
+      --primary-dark: #1E40AF;
+      --secondary: #FF6B6B;
+      --accent-cyan: #06B6D4;
+      --accent-green: #10B981;
+      --accent-yellow: #FBBF24;
+      --bg: #EFF6FF;
+      --card-bg: #FFFFFF;
+      --text: #1E293B;
+      --text-light: #64748B;
+      --border: #DBEAFE;
+      --light-bg: #F0F9FF;
+      --shadow: 0 4px 20px rgba(59,130,246,0.1);
+      --shadow-hover: 0 8px 32px rgba(59,130,246,0.18);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+    /* ===== Header ===== */
+    .header{background:linear-gradient(135deg,#1E40AF 0%,#3B82F6 50%,#0EA5E9 100%);padding:24px 40px;position:relative;overflow:hidden}
+    .header::before{content:'';position:absolute;top:-60%;left:-20%;width:140%;height:200%;background:radial-gradient(ellipse,rgba(255,255,255,.1) 0%,transparent 70%);animation:shimmer 8s ease-in-out infinite}
+    @keyframes shimmer{0%,100%{transform:translateX(-10%) rotate(0deg)}50%{transform:translateX(10%) rotate(5deg)}}
+    .header-content{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+    .header h1{font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;text-shadow:0 2px 10px rgba(0,0,0,.15)}
+    .header .subtitle{font-size:14px;color:rgba(255,255,255,.8);margin-top:6px}
+    .settings-trigger{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.35);border-radius:50%;width:46px;height:46px;font-size:22px;cursor:pointer;transition:all .35s;display:flex;align-items:center;justify-content:center;color:#fff}
+    .settings-trigger:hover{background:rgba(255,255,255,.3);transform:rotate(90deg)}
+
+    /* ===== Layout ===== */
+    .dashboard{display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:28px 32px;max-width:1400px;margin:0 auto}
+    .panel{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .panel-header{padding:20px 24px 14px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--border)}
+    .panel-header .icon{font-size:26px}
+    .panel-header h2{font-size:18px;font-weight:700;color:var(--primary)}
+    .panel-body{padding:20px 24px 24px}
+
+    /* ===== Avatar ===== */
+    .avatar-img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+    /* ===== Writer Card ===== */
+    .writer-card{display:flex;align-items:center;gap:16px;padding:16px;border-radius:var(--radius-sm);background:var(--light-bg);margin-bottom:12px;transition:all .3s;border:1px solid transparent}
+    .writer-card:last-child{margin-bottom:0}
+    .writer-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:var(--primary-light)}
+    .writer-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;border:3px solid;overflow:hidden;background:#fff}
+    .writer-info{flex:1;min-width:0}
+    .writer-name{font-size:15px;font-weight:600;margin-bottom:8px}
+
+    /* ===== Progress ===== */
+    .progress-bar-container{width:100%;height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:10px}
+    .progress-bar{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.25,.46,.45,.94)}
+    .progress-bar.full{background:linear-gradient(90deg,#10B981,#34D399)}
+    .progress-bar.good{background:linear-gradient(90deg,#3B82F6,#60A5FA)}
+    .progress-bar.mid{background:linear-gradient(90deg,#FBBF24,#FCD34D)}
+    .progress-bar.low{background:linear-gradient(90deg,#EF4444,#FCA5A5)}
+    .progress-label{font-size:12px;color:var(--text-light);text-align:right;margin-bottom:4px;font-weight:500}
+
+    /* ===== Metrics ===== */
+    .writer-metrics,.reviewer-metrics{display:flex;gap:8px;flex-wrap:wrap}
+    .metric{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text-light);background:#fff;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+    .metric .val{font-weight:700;color:var(--text)}
+    .metric.completed .val{color:var(--primary)}
+    .metric.deduction .val{color:#E17055}
+
+    /* ===== Right Panel ===== */
+    .right-panel{display:flex;flex-direction:column}
+    .right-panel .rotation-section{border-bottom:2px solid var(--border)}
+
+    /* ===== Wheel ===== */
+    .wheel-wrapper{display:flex;flex-direction:column;align-items:center;padding:24px 20px 20px}
+    .wheel-container{width:300px;height:300px;position:relative;margin:0 auto}
+    .wheel-track{position:absolute;inset:0;border-radius:50%;border:3px dashed var(--border)}
+    .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1E40AF,#3B82F6);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;z-index:5;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+    .wheel-center .current-name{font-size:13px;font-weight:700;margin-top:2px}
+    .wheel-avatar{position:absolute;width:54px;height:54px;border-radius:50%;overflow:hidden;background:#fff;border:3px solid #DDD;transform:translate(-50%,-50%);transition:all .5s cubic-bezier(.34,1.56,.64,1);z-index:2}
+    .wheel-avatar .avatar-name{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:11px;white-space:nowrap;color:var(--text-light);font-weight:500}
+    .wheel-avatar.active{border-width:4px;transform:translate(-50%,-50%) scale(1.2);z-index:3;box-shadow:0 0 0 6px rgba(59,130,246,.15),0 4px 16px rgba(59,130,246,.3)}
+    .wheel-avatar.active .avatar-name{color:var(--primary);font-weight:700}
+    .wheel-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--text-light);font-size:14px;z-index:6}
+    .wheel-arrow{position:absolute;top:50%;left:50%;width:5px;height:105px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);z-index:4;transition:transform .8s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+    .wheel-arrow .arrow-body{width:100%;height:100%;background:linear-gradient(to top,rgba(59,130,246,.1) 0%,var(--primary) 100%);border-radius:3px}
+    .wheel-arrow .arrow-tip{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:14px solid var(--primary)}
+
+    /* ===== Next Button ===== */
+    .next-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px auto 0;padding:12px 36px;background:linear-gradient(135deg,#1E40AF,#3B82F6);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+    .next-btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 6px 24px rgba(59,130,246,.4)}
+    .next-btn:active{transform:translateY(0) scale(.98)}
+    .next-btn .arrow-icon{font-size:18px;transition:transform .3s}
+    .next-btn:hover .arrow-icon{transform:translateX(4px)}
+    .next-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+    /* ===== Reviewer Card ===== */
+    .reviewer-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--radius-sm);background:var(--light-bg);margin-bottom:10px;transition:all .3s;border:1px solid transparent}
+    .reviewer-card:last-child{margin-bottom:0}
+    .reviewer-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);border-color:var(--primary-light)}
+    .reviewer-avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:3px solid;background:#fff}
+    .reviewer-info{flex:1}
+    .reviewer-name{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+    .role-tag{font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px}
+    .role-tag.role-review{background:#DBEAFE;color:#1E40AF}
+    button.leave-badge{cursor:pointer;transition:all .2s;font-family:inherit;font-size:12.5px}
+    button.leave-badge:disabled{cursor:default;opacity:.7}
+    button.leave-badge:not(:disabled):hover{background:#FFF0F0;border-color:var(--secondary)}
+    .leave-badge .view-link{color:var(--primary);font-size:11px;text-decoration:underline;margin-left:2px}
+
+    /* ===== Modal ===== */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity .3s}
+    .modal-overlay.show{display:flex;opacity:1}
+    .modal{background:#fff;border-radius:var(--radius);padding:32px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:scale(.9) translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    .modal-overlay.show .modal{transform:scale(1) translateY(0)}
+    .modal h3{font-size:20px;font-weight:700;color:var(--primary);margin-bottom:6px}
+    .modal .modal-subtitle{font-size:14px;color:var(--text-light);margin-bottom:24px}
+    .modal .modal-subtitle strong{color:var(--text)}
+    .modal-actions{display:flex;gap:12px;margin-bottom:16px}
+    .btn{flex:1;padding:14px 20px;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+    .btn-complete{background:linear-gradient(135deg,#10B981,#34D399);color:#fff}
+    .btn-complete:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
+    .btn-leave-action{background:linear-gradient(135deg,#FBBF24,#FCD34D);color:#78350F}
+    .btn-leave-action:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(251,191,36,.5)}
+    .leave-form{display:none;flex-direction:column;gap:12px;margin-bottom:16px;animation:slideDown .3s ease}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .leave-form.show{display:flex}
+    .leave-form textarea{width:100%;height:80px;padding:12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;resize:vertical;transition:border-color .3s}
+    .leave-form textarea:focus{outline:none;border-color:var(--primary)}
+    .btn-confirm-leave{background:linear-gradient(135deg,#EF4444,#FCA5A5);color:#fff;padding:12px 20px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;font-family:inherit}
+    .btn-confirm-leave:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(239,68,68,.4)}
+    .btn-cancel{width:100%;padding:10px;background:var(--border);color:var(--primary);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-cancel:hover{background:#BFDBFE}
+
+    /* ===== Leave History ===== */
+    .leave-list{max-height:300px;overflow-y:auto;margin-bottom:20px}
+    .leave-item{padding:12px 14px;background:var(--light-bg);border-radius:var(--radius-sm);margin-bottom:8px;border-left:4px solid var(--secondary)}
+    .leave-item:last-child{margin-bottom:0}
+    .leave-item .leave-date{font-size:12px;color:var(--text-light);margin-bottom:4px}
+    .leave-item .leave-reason{font-size:14px;color:var(--text);line-height:1.5}
+    .empty-leaves{text-align:center;padding:24px;color:var(--text-light);font-size:14px}
+    .empty-leaves .empty-icon{font-size:36px;margin-bottom:8px}
+
+    /* ===== Settings Panel ===== */
+    .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);z-index:900;display:none;opacity:0;transition:opacity .3s}
+    .settings-overlay.show{display:block;opacity:1}
+    .settings-panel{position:fixed;top:0;right:0;width:480px;max-width:94vw;height:100vh;background:#F8FAFC;box-shadow:-8px 0 32px rgba(0,0,0,.12);z-index:901;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .4s cubic-bezier(.25,.46,.45,.94)}
+    .settings-overlay.show .settings-panel{transform:translateX(0)}
+    .settings-header{padding:20px 24px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fff}
+    .settings-header h3{font-size:18px;font-weight:700;color:var(--primary)}
+    .settings-close-btn{width:36px;height:36px;border-radius:50%;border:none;background:#F1F5F9;font-size:20px;cursor:pointer;color:#64748B;transition:all .2s;display:flex;align-items:center;justify-content:center}
+    .settings-close-btn:hover{background:#E2E8F0;color:var(--text)}
+    .settings-body{flex:1;overflow-y:auto;padding:20px 24px}
+    .settings-section{margin-bottom:20px}
+    .settings-section h4{font-size:14px;font-weight:700;color:var(--text-light);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+    .settings-item{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .settings-item-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .settings-avatar-small{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid;flex-shrink:0;background:#fff}
+    .settings-item-name{font-weight:600;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .settings-fields{display:flex;gap:10px;flex-wrap:nowrap;align-items:center}
+    .settings-fields label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-light);font-weight:500;white-space:nowrap}
+    .settings-fields input[type="number"]{width:50px;padding:5px 4px;border:2px solid var(--border);border-radius:6px;font-size:13px;text-align:center;font-weight:600;font-family:inherit}
+    .settings-fields input[type="number"]:focus{outline:none;border-color:var(--primary)}
+
+    /* 二档角色切换 */
+    .role-toggle-2{display:flex;border-radius:6px;overflow:hidden;border:2px solid var(--primary);margin-left:auto;flex-shrink:0}
+    .role-toggle-2 .role-opt{padding:3px 10px;font-size:11px;border:none;border-right:1px solid rgba(59,130,246,.3);background:#fff;color:var(--primary);cursor:pointer;font-weight:600;transition:all .2s;font-family:inherit}
+    .role-toggle-2 .role-opt:last-child{border-right:none}
+    .role-toggle-2 .role-opt.active{background:var(--primary);color:#fff}
+    .role-toggle-2 .role-opt:not(.active):hover{background:#EFF6FF}
+    .writer-fields-group{display:contents}
+    .writer-fields-group.hidden{display:none}
+    .reviewer-leave-field{display:flex;align-items:center;gap:6px;margin-left:auto}
+    .reviewer-leave-field.hidden{display:none}
+    .leave-count-tag{font-size:12px;color:var(--text-light);font-weight:500}
+    .leave-edit-btn{background:var(--border);border:none;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--primary);font-weight:600;font-family:inherit;transition:all .2s;white-space:nowrap}
+    .leave-edit-btn:hover{background:var(--primary);color:#fff}
+
+    /* Leave Editor Modal */
+    .leave-editor-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--light-bg);border-radius:8px;margin-bottom:8px;border-left:4px solid var(--secondary)}
+    .leave-editor-item .le-content{flex:1}
+    .leave-editor-item .le-date{font-size:12px;color:var(--text-light);margin-bottom:2px}
+    .leave-editor-item .le-reason{font-size:13px;color:var(--text);line-height:1.4}
+    .le-delete{width:28px;height:28px;border-radius:50%;border:none;background:#FEE2E2;color:#EF4444;font-size:16px;cursor:pointer;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+    .le-delete:hover{background:#EF4444;color:#fff}
+    .leave-editor-add{display:flex;gap:8px;margin:16px 0 12px;flex-wrap:wrap}
+    .leave-editor-add input{flex:1;min-width:0;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+    .leave-editor-add input:focus{outline:none;border-color:var(--primary)}
+    .leave-editor-add input[type="date"]{flex:0 0 140px}
+    .le-add-btn{padding:8px 16px;background:linear-gradient(135deg,#3B82F6,#60A5FA);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+    .le-add-btn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(59,130,246,.3)}
+
+    /* Add Member Modal */
+    .add-member-form{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+    .add-member-form .form-row{display:flex;align-items:center;gap:10px}
+    .add-member-form .form-label{font-size:13px;font-weight:600;color:var(--text-light);width:64px;flex-shrink:0;text-align:right}
+    .add-member-form .form-input{flex:1;padding:9px 12px;border:2px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;transition:border-color .2s}
+    .add-member-form .form-input:focus{outline:none;border-color:var(--primary)}
+    .add-member-form .form-input::placeholder{color:#CBD5E1}
+    .add-role-toggle{display:flex;border-radius:8px;overflow:hidden;border:2px solid var(--primary);flex:1}
+    .add-role-toggle .add-role-opt{flex:1;padding:8px;font-size:14px;border:none;background:#fff;color:var(--primary);cursor:pointer;font-weight:600;transition:all .2s;font-family:inherit;text-align:center}
+    .add-role-toggle .add-role-opt.active{background:var(--primary);color:#fff}
+    .add-role-toggle .add-role-opt:first-child{border-right:1px solid rgba(59,130,246,.3)}
+    .form-row-target.am-hidden{display:none}
+    .btn-add-submit{width:100%;padding:13px;background:linear-gradient(135deg,#10B981,#34D399);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s;font-family:inherit}
+    .btn-add-submit:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
+
+
+    /* ===== Toast ===== */
+    .toast{position:fixed;top:20px;right:20px;padding:14px 24px;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:600;z-index:2000;transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .toast.show{transform:translateX(0)}
+    .toast.success{background:linear-gradient(135deg,#10B981,#34D399)}
+    .toast.info{background:linear-gradient(135deg,#3B82F6,#60A5FA)}
+    .toast.warning{background:linear-gradient(135deg,#FBBF24,#FCD34D);color:#78350F}
+
+    /* ===== Responsive ===== */
+    @media(max-width:900px){
+      .dashboard{grid-template-columns:1fr;padding:16px;gap:16px}
+      .header{padding:20px}
+      .header h1{font-size:22px}
+      .wheel-container{width:260px;height:260px}
+    }
+
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .animate-in{animation:fadeInUp .5s ease both}
+
+    .empty-panel{padding:32px;text-align:center;color:var(--text-light);font-size:14px}
+    .empty-panel .empty-icon{font-size:36px;margin-bottom:8px}
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-content">
+      <div>
+        <h1>A.P.C.科普组工作安排一览</h1>
+        <p class="subtitle">校长，你该干活了</p>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="settings-trigger" id="addMemberBtn" title="添加人员">➕</button>
+        <button class="settings-trigger" id="settingsBtn" title="调整设置">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <!-- 左侧：主笔 -->
+    <section class="panel animate-in" style="animation-delay:.1s">
+      <div class="panel-header">
+        <span class="icon">📝</span>
+        <h2>主笔工作完成情况</h2>
+      </div>
+      <div class="panel-body" id="writersPanel"></div>
+    </section>
+
+    <!-- 右侧：审核轮班 + 审核/校审完成 -->
+    <section class="panel right-panel animate-in" style="animation-delay:.2s">
+      <div class="rotation-section">
+        <div class="panel-header">
+          <span class="icon">🔄</span>
+          <h2>审核轮班</h2>
+        </div>
+        <div class="wheel-wrapper">
+          <div class="wheel-container" id="wheelContainer">
+            <div class="wheel-track"></div>
+            <div class="wheel-center">
+              <span>当前审核</span>
+              <span class="current-name" id="wheelCenterName">—</span>
+            </div>
+            <div class="wheel-arrow" id="wheelArrow">
+              <div class="arrow-tip"></div>
+              <div class="arrow-body"></div>
+            </div>
+          </div>
+          <button class="next-btn" id="nextBtn">下一个 <span class="arrow-icon">→</span></button>
+        </div>
+      </div>
+      <div class="review-stats-section">
+        <div class="panel-header">
+          <span class="icon">📊</span>
+          <h2>审核工作完成情况</h2>
+        </div>
+        <div class="panel-body" id="reviewersPanel"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 确认弹窗 -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+      <h3>确认审核情况</h3>
+      <p class="modal-subtitle">当前审核人员：<strong id="modalReviewerName"></strong></p>
+      <div class="modal-actions">
+        <button class="btn btn-complete" id="btnComplete">✅ 完成审核</button>
+        <button class="btn btn-leave-action" id="btnLeave">📋 请假</button>
+      </div>
+      <div class="leave-form" id="leaveForm">
+        <textarea id="leaveReasonInput" placeholder="请输入请假原因…"></textarea>
+        <button class="btn-confirm-leave" id="btnConfirmLeave">确认请假</button>
+      </div>
+      <button class="btn-cancel" id="btnCancelModal">取消</button>
+    </div>
+  </div>
+
+  <!-- 请假记录弹窗 -->
+  <div class="modal-overlay" id="leaveHistoryModal">
+    <div class="modal">
+      <h3 id="leaveHistoryTitle">请假记录</h3>
+      <div class="leave-list" id="leaveHistoryList"></div>
+      <button class="btn-cancel" id="btnCloseHistory">关闭</button>
+    </div>
+  </div>
+
+  <!-- 设置面板 -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h3>⚙️ 调整设置</h3>
+        <button class="settings-close-btn" id="settingsCloseBtn">✕</button>
+      </div>
+      <div class="settings-body" id="settingsBody"></div>
+    </div>
+  </div>
+
+  <!-- 添加人员弹窗 -->
+  <div class="modal-overlay" id="addMemberModal">
+    <div class="modal">
+      <h3>添加新成员</h3>
+      <div class="add-member-form">
+        <div class="form-row">
+          <span class="form-label">姓名</span>
+          <input type="text" class="form-input" id="amName" placeholder="输入成员姓名">
+        </div>
+        <div class="form-row">
+          <span class="form-label">头像</span>
+          <input type="text" class="form-input" id="amAvatar" placeholder="图片URL（可留空自动生成）">
+        </div>
+        <div class="form-row">
+          <span class="form-label">身份</span>
+          <div class="add-role-toggle" id="amRoleToggle">
+            <button type="button" class="add-role-opt active" data-role="主笔">主笔</button>
+            <button type="button" class="add-role-opt" data-role="审核">审核</button>
+          </div>
+        </div>
+        <div class="form-row form-row-target" id="amTargetRow">
+          <span class="form-label">目标</span>
+          <input type="number" class="form-input" id="amTarget" min="0" value="8" placeholder="任务指标">
+        </div>
+      </div>
+      <button type="button" class="btn-add-submit" id="amSubmitBtn">✅ 确认添加</button>
+      <div style="height:10px"></div>
+      <button class="btn-cancel" id="amCancelBtn">取消</button>
+    </div>
+  </div>
+
+  <!-- 请假编辑弹窗 -->
+  <div class="modal-overlay" id="leaveEditorModal">
+    <div class="modal">
+      <h3 id="leaveEditorTitle">编辑请假记录</h3>
+      <div class="leave-list" id="leaveEditorList"></div>
+      <div class="leave-editor-add">
+        <input type="date" id="leaveEditorDate">
+        <input type="text" id="leaveEditorReason" placeholder="请假原因…">
+        <button type="button" class="le-add-btn" id="leaveEditorAddBtn">+ 新增</button>
+      </div>
+      <button class="btn-cancel" id="leaveEditorCloseBtn">关闭</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script>
+    /* ========== State ========== */
+    const state = {
+      members: JSON.parse(JSON.stringify(CONFIG.members)),
+      currentReviewerIndex: CONFIG.currentReviewerIndex || 0
+    };
+
+    /* ========== DOM ========== */
+    const $ = s => document.querySelector(s);
+    const writersPanel      = $('#writersPanel');
+    const reviewersPanel    = $('#reviewersPanel');
+    const wheelContainer    = $('#wheelContainer');
+    const wheelArrow        = $('#wheelArrow');
+    const wheelCenterName   = $('#wheelCenterName');
+    const nextBtn           = $('#nextBtn');
+    const confirmModal      = $('#confirmModal');
+    const modalReviewerName = $('#modalReviewerName');
+    const btnComplete       = $('#btnComplete');
+    const btnLeave          = $('#btnLeave');
+    const leaveForm         = $('#leaveForm');
+    const leaveReasonInput  = $('#leaveReasonInput');
+    const btnConfirmLeave   = $('#btnConfirmLeave');
+    const btnCancelModal    = $('#btnCancelModal');
+    const leaveHistoryModal = $('#leaveHistoryModal');
+    const leaveHistoryTitle = $('#leaveHistoryTitle');
+    const leaveHistoryList  = $('#leaveHistoryList');
+    const btnCloseHistory   = $('#btnCloseHistory');
+    const settingsBtn       = $('#settingsBtn');
+    const settingsOverlay   = $('#settingsOverlay');
+    const settingsCloseBtn  = $('#settingsCloseBtn');
+    const settingsBody      = $('#settingsBody');
+    const toast             = $('#toast');
+
+    /* ========== Helpers ========== */
+    function showToast(msg, type='success') {
+      toast.textContent = msg;
+      toast.className = 'toast ' + type;
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+    function progressCls(r) {
+      if (r >= 1) return 'full'; if (r >= .6) return 'good'; if (r >= .3) return 'mid'; return 'low';
+    }
+    function fmtDate(d) { const t=new Date(d); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
+    function todayStr() { return fmtDate(new Date()); }
+
+    /** 筛选器 */
+    function getWriters()  { return state.members.filter(m => m.role === '主笔'); }
+    function getReviewers(){ return state.members.filter(m => m.role === '审核'); }
+
+    /** 确保 currentReviewerIndex 指向审核人员 */
+    function ensureValidCurrent() {
+      const cur = state.members[state.currentReviewerIndex];
+      if (cur && cur.role === '审核') return;
+      const idx = state.members.findIndex(m => m.role === '审核');
+      state.currentReviewerIndex = idx >= 0 ? idx : -1;
+    }
+
+    /** 找下一位审核 */
+    function findNext() {
+      const n = state.members.length;
+      let next = (state.currentReviewerIndex + 1) % n, s = 0;
+      while (state.members[next].role !== '审核' && s < n) { next = (next+1)%n; s++; }
+      return s < n ? next : state.currentReviewerIndex;
+    }
+
+    /* ========== Render: Writers (Left) ========== */
+    function renderWriters() {
+      const writers = getWriters();
+      if (writers.length === 0) {
+        writersPanel.innerHTML = '<div class="empty-panel"><div class="empty-icon">📭</div>暂无主笔人员</div>';
+        return;
+      }
+      writersPanel.innerHTML = writers.map((w, i) => {
+        const eff = w.completed + w.deduction * 0.5;
+        const ratio = w.target > 0 ? Math.min(eff / w.target, 1) : 0;
+        const pct = Math.round(ratio * 100);
+        const midx = state.members.indexOf(w);
+        return `
+          <div class="writer-card animate-in" style="animation-delay:${.1+i*.07}s">
+            <div class="writer-avatar" style="border-color:${w.color}">
+              <img src="${w.avatar}" alt="${w.name}" class="avatar-img">
+            </div>
+            <div class="writer-info">
+              <div class="writer-name">${w.name}</div>
+              <div class="progress-label">${pct}%（2抵扣=1任务）</div>
+              <div class="progress-bar-container">
+                <div class="progress-bar ${progressCls(ratio)}" style="width:${pct}%"></div>
+              </div>
+              <div class="writer-metrics">
+                <span class="metric">🎯 任务指标 <span class="val">${w.target}</span></span>
+                <span class="metric completed">✅ 已完成 <span class="val">${w.completed}</span></span>
+                <span class="metric deduction">🔄 抵扣 <span class="val">${w.deduction}</span></span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ========== Render: Reviewers (Right bottom) ========== */
+    function renderReviewers() {
+      const list = getReviewers();
+      if (list.length === 0) {
+        reviewersPanel.innerHTML = '<div class="empty-panel"><div class="empty-icon">📭</div>暂无审核人员</div>';
+        return;
+      }
+      reviewersPanel.innerHTML = list.map((r, i) => {
+        const midx = state.members.indexOf(r);
+        return `
+          <div class="reviewer-card animate-in" style="animation-delay:${.1+i*.07}s">
+            <div class="reviewer-avatar" style="border-color:${r.color}">
+              <img src="${r.avatar}" alt="${r.name}" class="avatar-img">
+            </div>
+            <div class="reviewer-info">
+              <div class="reviewer-name">${r.name}</div>
+              <div class="reviewer-metrics">
+                <span class="metric completed">✅ 完成数 <span class="val">${r.completed}</span></span>
+                <button type="button" class="metric leave-badge" data-midx="${midx}" ${r.leaves.length>0?'':'disabled'}>
+                  📋 请假 <span class="val">${r.leaves.length}次</span>
+                  ${r.leaves.length>0?'<span class="view-link">查看</span>':''}
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ========== Render: Wheel (Right top, 审核 only) ========== */
+    function renderWheel() {
+      wheelContainer.querySelectorAll('.wheel-avatar,.wheel-empty').forEach(e=>e.remove());
+      const active = getReviewers();
+      const n = active.length;
+
+      if (n === 0 || state.currentReviewerIndex < 0) {
+        wheelArrow.style.display = 'none';
+        wheelCenterName.textContent = '—';
+        nextBtn.disabled = true;
+        const el = document.createElement('div');
+        el.className = 'wheel-empty';
+        el.innerHTML = '<div style="font-size:28px;margin-bottom:6px">📭</div>暂无审核人员';
+        wheelContainer.appendChild(el);
+        return;
+      }
+
+      wheelArrow.style.display = '';
+      nextBtn.disabled = false;
+
+      const size = wheelContainer.offsetWidth || 300;
+      const radius = size * .38, center = size / 2;
+      const curMember = state.members[state.currentReviewerIndex];
+      const curActiveIdx = active.indexOf(curMember);
+
+      active.forEach((r, i) => {
+        const ang = (i * 360 / n) - 90;
+        const rad = ang * Math.PI / 180;
+        const el = document.createElement('div');
+        el.className = 'wheel-avatar' + (i === curActiveIdx ? ' active' : '');
+        el.style.left  = (center + radius * Math.cos(rad)) + 'px';
+        el.style.top   = (center + radius * Math.sin(rad)) + 'px';
+        el.style.borderColor = r.color;
+        el.innerHTML = `<img src="${r.avatar}" alt="${r.name}" class="avatar-img"><span class="avatar-name">${r.name}</span>`;
+        wheelContainer.appendChild(el);
+      });
+
+      if (curActiveIdx >= 0) {
+        wheelArrow.style.transform = `translate(-50%,-100%) rotate(${curActiveIdx*(360/n)}deg)`;
+      }
+      wheelCenterName.textContent = curMember ? curMember.name : '—';
+    }
+
+    /* ========== Rotation Logic ========== */
+    function advance() {
+      state.currentReviewerIndex = findNext();
+      renderWheel();
+      renderReviewers();
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (state.currentReviewerIndex < 0 || getReviewers().length === 0) return;
+      const m = state.members[state.currentReviewerIndex];
+      modalReviewerName.textContent = m.name;
+      leaveForm.classList.remove('show');
+      leaveReasonInput.value = '';
+      confirmModal.classList.add('show');
+    });
+
+    btnComplete.addEventListener('click', () => {
+      state.members[state.currentReviewerIndex].completed++;
+      confirmModal.classList.remove('show');
+      showToast(`${state.members[state.currentReviewerIndex].name} 完成审核 +1 ✅`);
+      setTimeout(advance, 300);
+    });
+
+    btnLeave.addEventListener('click', () => leaveForm.classList.add('show'));
+
+    btnConfirmLeave.addEventListener('click', () => {
+      const reason = leaveReasonInput.value.trim();
+      if (!reason) { showToast('请输入请假原因', 'warning'); return; }
+      state.members[state.currentReviewerIndex].leaves.push({ date: todayStr(), reason });
+      confirmModal.classList.remove('show');
+      showToast(`${state.members[state.currentReviewerIndex].name} 已请假 📋`, 'info');
+      setTimeout(advance, 300);
+    });
+
+    btnCancelModal.addEventListener('click', () => confirmModal.classList.remove('show'));
+    confirmModal.addEventListener('click', e => { if (e.target === confirmModal) confirmModal.classList.remove('show'); });
+
+    /* ========== Leave History ========== */
+    function showLeaveHistory(midx) {
+      const m = state.members[midx];
+      leaveHistoryTitle.textContent = `${m.name} 的请假记录`;
+      leaveHistoryList.innerHTML = m.leaves.length === 0
+        ? '<div class="empty-leaves"><div class="empty-icon">🎉</div>暂无请假记录，全勤！</div>'
+        : m.leaves.map(l => `<div class="leave-item"><div class="leave-date">📅 ${fmtDate(l.date)}</div><div class="leave-reason">${l.reason}</div></div>`).join('');
+      leaveHistoryModal.classList.add('show');
+    }
+
+    reviewersPanel.addEventListener('click', e => {
+      const b = e.target.closest('.leave-badge');
+      if (b && !b.disabled) { const i = parseInt(b.dataset.midx); if (!isNaN(i)) showLeaveHistory(i); }
+    });
+
+    btnCloseHistory.addEventListener('click', () => leaveHistoryModal.classList.remove('show'));
+    leaveHistoryModal.addEventListener('click', e => { if (e.target === leaveHistoryModal) leaveHistoryModal.classList.remove('show'); });
+
+    /* ========== Settings Panel ========== */
+    function openSettings() {
+      renderSettings();
+      settingsOverlay.classList.add('show');
+    }
+    function closeSettings() {
+      // Auto-save: read all field values back into state
+      document.querySelectorAll('.settings-item').forEach(item => {
+        const i = parseInt(item.dataset.midx);
+        if (isNaN(i) || !state.members[i]) return;
+        const activeRole = item.querySelector('.role-toggle-2 .role-opt.active');
+        if (activeRole) state.members[i].role = activeRole.dataset.role;
+        item.querySelectorAll('input[type="number"]').forEach(inp => {
+          state.members[i][inp.dataset.field] = Math.max(0, parseInt(inp.value) || 0);
+        });
+      });
+      ensureValidCurrent();
+      renderAll();
+      settingsOverlay.classList.remove('show');
+    }
+
+    function renderSettings() {
+      settingsBody.innerHTML = state.members.map((m, i) => {
+        const isWriter = m.role === '主笔';
+        return `
+          <div class="settings-item" data-midx="${i}">
+            <div class="settings-item-header">
+              <div class="settings-avatar-small" style="border-color:${m.color}">
+                <img src="${m.avatar}" alt="${m.name}" class="avatar-img">
+              </div>
+              <span class="settings-item-name">${m.name}</span>
+              <div class="role-toggle-2" data-midx="${i}">
+                <button type="button" class="role-opt ${isWriter?'active':''}" data-role="主笔">主笔</button>
+                <button type="button" class="role-opt ${!isWriter?'active':''}" data-role="审核">审核</button>
+              </div>
+            </div>
+            <div class="settings-fields">
+              <div class="writer-fields-group${isWriter?'':' hidden'}">
+                <label>目标 <input type="number" min="0" value="${m.target}" data-field="target"></label>
+                <label>抵扣 <input type="number" min="0" value="${m.deduction}" data-field="deduction"></label>
+              </div>
+              <label>完成 <input type="number" min="0" value="${m.completed}" data-field="completed"></label>
+              <div class="reviewer-leave-field${isWriter?' hidden':''}">
+                <span class="leave-count-tag">请假 ${m.leaves.length}次</span>
+                <button type="button" class="leave-edit-btn" data-midx="${i}">✏️ 编辑</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // Role toggle click → show/hide role-specific fields
+    settingsBody.addEventListener('click', e => {
+      const opt = e.target.closest('.role-opt');
+      if (opt) {
+        const toggle = opt.closest('.role-toggle-2');
+        toggle.querySelectorAll('.role-opt').forEach(b => b.classList.remove('active'));
+        opt.classList.add('active');
+        const item = opt.closest('.settings-item');
+        const isWriter = opt.dataset.role === '主笔';
+        const wf = item.querySelector('.writer-fields-group');
+        const rf = item.querySelector('.reviewer-leave-field');
+        if (wf) wf.classList.toggle('hidden', !isWriter);
+        if (rf) rf.classList.toggle('hidden', isWriter);
+        return;
+      }
+      // Leave edit button click
+      const editBtn = e.target.closest('.leave-edit-btn');
+      if (editBtn) {
+        const midx = parseInt(editBtn.dataset.midx);
+        if (!isNaN(midx)) openLeaveEditor(midx);
+      }
+    });
+
+    settingsBtn.addEventListener('click', openSettings);
+    settingsCloseBtn.addEventListener('click', closeSettings);
+    settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) closeSettings(); });
+
+    /* ========== Leave Editor (in settings) ========== */
+    const leaveEditorModal   = $('#leaveEditorModal');
+    const leaveEditorTitle   = $('#leaveEditorTitle');
+    const leaveEditorList    = $('#leaveEditorList');
+    const leaveEditorDate    = $('#leaveEditorDate');
+    const leaveEditorReason  = $('#leaveEditorReason');
+    const leaveEditorAddBtn  = $('#leaveEditorAddBtn');
+    const leaveEditorCloseBtn= $('#leaveEditorCloseBtn');
+    let leaveEditorIdx = -1;
+
+    function openLeaveEditor(midx) {
+      leaveEditorIdx = midx;
+      const m = state.members[midx];
+      leaveEditorTitle.textContent = `${m.name} — 编辑请假记录`;
+      leaveEditorDate.value = todayStr();
+      leaveEditorReason.value = '';
+      renderLeaveEditorList();
+      leaveEditorModal.classList.add('show');
+    }
+
+    function renderLeaveEditorList() {
+      const leaves = state.members[leaveEditorIdx].leaves;
+      if (leaves.length === 0) {
+        leaveEditorList.innerHTML = '<div class="empty-leaves"><div class="empty-icon">🎉</div>暂无请假记录</div>';
+      } else {
+        leaveEditorList.innerHTML = leaves.map((l, li) => `
+          <div class="leave-editor-item">
+            <div class="le-content">
+              <div class="le-date">📅 ${fmtDate(l.date)}</div>
+              <div class="le-reason">${l.reason}</div>
+            </div>
+            <button type="button" class="le-delete" data-li="${li}" title="删除">✕</button>
+          </div>`).join('');
+      }
+    }
+
+    // Delete leave item
+    leaveEditorList.addEventListener('click', e => {
+      const del = e.target.closest('.le-delete');
+      if (!del) return;
+      const li = parseInt(del.dataset.li);
+      state.members[leaveEditorIdx].leaves.splice(li, 1);
+      renderLeaveEditorList();
+      updateSettingsLeaveCount();
+    });
+
+    // Add new leave item
+    leaveEditorAddBtn.addEventListener('click', () => {
+      const reason = leaveEditorReason.value.trim();
+      const date = leaveEditorDate.value;
+      if (!reason) { showToast('请输入请假原因', 'warning'); return; }
+      if (!date) { showToast('请选择日期', 'warning'); return; }
+      state.members[leaveEditorIdx].leaves.push({ date, reason });
+      leaveEditorReason.value = '';
+      renderLeaveEditorList();
+      updateSettingsLeaveCount();
+      showToast('已添加请假记录', 'info');
+    });
+
+    function updateSettingsLeaveCount() {
+      const item = settingsBody.querySelector(`.settings-item[data-midx="${leaveEditorIdx}"]`);
+      if (item) {
+        const tag = item.querySelector('.leave-count-tag');
+        if (tag) tag.textContent = `请假 ${state.members[leaveEditorIdx].leaves.length}次`;
+      }
+    }
+
+    leaveEditorCloseBtn.addEventListener('click', () => {
+      leaveEditorModal.classList.remove('show');
+      renderReviewers(); // refresh main panel leave counts
+    });
+    leaveEditorModal.addEventListener('click', e => {
+      if (e.target === leaveEditorModal) {
+        leaveEditorModal.classList.remove('show');
+        renderReviewers();
+      }
+    });
+
+    /* ========== Add Member ========== */
+    const addMemberModal  = $('#addMemberModal');
+    const amName          = $('#amName');
+    const amAvatar        = $('#amAvatar');
+    const amRoleToggle    = $('#amRoleToggle');
+    const amTargetRow     = $('#amTargetRow');
+    const amTarget        = $('#amTarget');
+    const amSubmitBtn     = $('#amSubmitBtn');
+    const amCancelBtn     = $('#amCancelBtn');
+    const addMemberBtn    = $('#addMemberBtn');
+
+    const PALETTE = ['#3B82F6','#0EA5E9','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444','#06B6D4','#F97316','#14B8A6','#6366F1','#D946EF'];
+
+    addMemberBtn.addEventListener('click', () => {
+      amName.value = '';
+      amAvatar.value = '';
+      amTarget.value = '8';
+      // Reset role to 主笔
+      amRoleToggle.querySelectorAll('.add-role-opt').forEach((b, i) => b.classList.toggle('active', i === 0));
+      amTargetRow.classList.remove('am-hidden');
+      addMemberModal.classList.add('show');
+    });
+
+    // Role toggle in add form
+    amRoleToggle.addEventListener('click', e => {
+      const opt = e.target.closest('.add-role-opt');
+      if (!opt) return;
+      amRoleToggle.querySelectorAll('.add-role-opt').forEach(b => b.classList.remove('active'));
+      opt.classList.add('active');
+      amTargetRow.classList.toggle('am-hidden', opt.dataset.role !== '主笔');
+    });
+
+    // Submit
+    amSubmitBtn.addEventListener('click', () => {
+      const name = amName.value.trim();
+      if (!name) { showToast('请输入成员姓名', 'warning'); return; }
+      const role = amRoleToggle.querySelector('.add-role-opt.active').dataset.role;
+      const avatar = amAvatar.value.trim() || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name + Date.now())}`;
+      const color = PALETTE[state.members.length % PALETTE.length];
+      const target = role === '主笔' ? Math.max(0, parseInt(amTarget.value) || 0) : 0;
+
+      state.members.push({
+        name,
+        avatar,
+        color,
+        role,
+        target,
+        completed: 0,
+        deduction: 0,
+        leaves: []
+      });
+
+      addMemberModal.classList.remove('show');
+      renderSettings();   // refresh settings list
+      renderAll();         // refresh main panels
+      showToast(`${name} 已加入团队 🎉`);
+    });
+
+    amCancelBtn.addEventListener('click', () => addMemberModal.classList.remove('show'));
+    addMemberModal.addEventListener('click', e => { if (e.target === addMemberModal) addMemberModal.classList.remove('show'); });
+
+    /* ========== Init ========== */
+    function renderAll() { renderWriters(); renderReviewers(); renderWheel(); }
+    function init() { ensureValidCurrent(); renderAll(); }
+    window.addEventListener('resize', renderWheel);
+    init();
+  </script>
+</body>
+</html>
