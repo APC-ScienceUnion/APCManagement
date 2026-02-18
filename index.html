@@ -162,10 +162,25 @@
     .settings-item-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
     .settings-avatar-small{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid;flex-shrink:0;background:#fff}
     .settings-item-name{font-weight:600;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .settings-delete-btn{width:30px;height:30px;border-radius:50%;border:none;background:#FEE2E2;color:#EF4444;font-size:15px;cursor:pointer;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+    .settings-delete-btn:hover{background:#EF4444;color:#fff}
     .settings-fields{display:flex;gap:10px;flex-wrap:nowrap;align-items:center}
     .settings-fields label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-light);font-weight:500;white-space:nowrap}
     .settings-fields input[type="number"]{width:50px;padding:5px 4px;border:2px solid var(--border);border-radius:6px;font-size:13px;text-align:center;font-weight:600;font-family:inherit}
     .settings-fields input[type="number"]:focus{outline:none;border-color:var(--primary)}
+
+    /* ===== Data Management ===== */
+    .data-management{margin-top:24px;padding-top:20px;border-top:2px solid var(--border)}
+    .data-management h4{font-size:14px;font-weight:700;color:var(--text-light);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .data-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .data-btn{padding:10px 18px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;background:#fff;color:var(--text)}
+    .data-btn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.08)}
+    .data-btn.export-btn{border-color:#10B981;color:#10B981}
+    .data-btn.export-btn:hover{background:#10B981;color:#fff}
+    .data-btn.import-btn{border-color:#3B82F6;color:#3B82F6}
+    .data-btn.import-btn:hover{background:#3B82F6;color:#fff}
+    .data-btn.reset-btn{border-color:#EF4444;color:#EF4444}
+    .data-btn.reset-btn:hover{background:#EF4444;color:#fff}
 
     /* 二档角色切换 */
     .role-toggle-2{display:flex;border-radius:6px;overflow:hidden;border:2px solid var(--primary);margin-left:auto;flex-shrink:0}
@@ -323,7 +338,18 @@
         <h3>⚙️ 调整设置</h3>
         <button class="settings-close-btn" id="settingsCloseBtn">✕</button>
       </div>
-      <div class="settings-body" id="settingsBody"></div>
+      <div class="settings-body">
+        <div id="settingsBody"></div>
+        <div class="data-management">
+          <h4>📦 数据管理</h4>
+          <div class="data-actions">
+            <button type="button" class="data-btn export-btn" id="exportBtn">📤 导出数据</button>
+            <button type="button" class="data-btn import-btn" id="importBtn">📥 导入数据</button>
+            <button type="button" class="data-btn reset-btn" id="resetBtn">🔄 恢复默认</button>
+          </div>
+          <input type="file" id="importFileInput" accept=".json" style="display:none">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -376,11 +402,28 @@
 
   <script src="config.js"></script>
   <script>
-    /* ========== State ========== */
-    const state = {
-      members: JSON.parse(JSON.stringify(CONFIG.members)),
-      currentReviewerIndex: CONFIG.currentReviewerIndex || 0
-    };
+    /* ========== Storage ========== */
+    const STORAGE_KEY = 'apc_kepu_state';
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.members) && parsed.members.length > 0) return parsed;
+        }
+      } catch(e) {}
+      return {
+        members: JSON.parse(JSON.stringify(CONFIG.members)),
+        currentReviewerIndex: CONFIG.currentReviewerIndex || 0
+      };
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+    }
+
+    const state = loadState();
 
     /* ========== DOM ========== */
     const $ = s => document.querySelector(s);
@@ -421,11 +464,9 @@
     function fmtDate(d) { const t=new Date(d); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
     function todayStr() { return fmtDate(new Date()); }
 
-    /** 筛选器 */
     function getWriters()  { return state.members.filter(m => m.role === '主笔'); }
     function getReviewers(){ return state.members.filter(m => m.role === '审核'); }
 
-    /** 确保 currentReviewerIndex 指向审核人员 */
     function ensureValidCurrent() {
       const cur = state.members[state.currentReviewerIndex];
       if (cur && cur.role === '审核') return;
@@ -433,15 +474,15 @@
       state.currentReviewerIndex = idx >= 0 ? idx : -1;
     }
 
-    /** 找下一位审核 */
     function findNext() {
       const n = state.members.length;
+      if (n === 0) return -1;
       let next = (state.currentReviewerIndex + 1) % n, s = 0;
       while (state.members[next].role !== '审核' && s < n) { next = (next+1)%n; s++; }
       return s < n ? next : state.currentReviewerIndex;
     }
 
-    /* ========== Render: Writers (Left) ========== */
+    /* ========== Render: Writers ========== */
     function renderWriters() {
       const writers = getWriters();
       if (writers.length === 0) {
@@ -452,7 +493,6 @@
         const eff = w.completed + w.deduction * 0.5;
         const ratio = w.target > 0 ? Math.min(eff / w.target, 1) : 0;
         const pct = Math.round(ratio * 100);
-        const midx = state.members.indexOf(w);
         return `
           <div class="writer-card animate-in" style="animation-delay:${.1+i*.07}s">
             <div class="writer-avatar" style="border-color:${w.color}">
@@ -474,7 +514,7 @@
       }).join('');
     }
 
-    /* ========== Render: Reviewers (Right bottom) ========== */
+    /* ========== Render: Reviewers ========== */
     function renderReviewers() {
       const list = getReviewers();
       if (list.length === 0) {
@@ -502,7 +542,7 @@
       }).join('');
     }
 
-    /* ========== Render: Wheel (Right top, 审核 only) ========== */
+    /* ========== Render: Wheel ========== */
     function renderWheel() {
       wheelContainer.querySelectorAll('.wheel-avatar,.wheel-empty').forEach(e=>e.remove());
       const active = getReviewers();
@@ -548,6 +588,7 @@
     /* ========== Rotation Logic ========== */
     function advance() {
       state.currentReviewerIndex = findNext();
+      saveState();
       renderWheel();
       renderReviewers();
     }
@@ -564,7 +605,7 @@
     btnComplete.addEventListener('click', () => {
       state.members[state.currentReviewerIndex].completed++;
       confirmModal.classList.remove('show');
-      showToast(`${state.members[state.currentReviewerIndex].name} 完成审核 +1 ✅`);
+      showToast(`${state.members[state.currentReviewerIndex].name} 完成审核 +1`);
       setTimeout(advance, 300);
     });
 
@@ -575,7 +616,7 @@
       if (!reason) { showToast('请输入请假原因', 'warning'); return; }
       state.members[state.currentReviewerIndex].leaves.push({ date: todayStr(), reason });
       confirmModal.classList.remove('show');
-      showToast(`${state.members[state.currentReviewerIndex].name} 已请假 📋`, 'info');
+      showToast(`${state.members[state.currentReviewerIndex].name} 已请假`, 'info');
       setTimeout(advance, 300);
     });
 
@@ -588,7 +629,7 @@
       leaveHistoryTitle.textContent = `${m.name} 的请假记录`;
       leaveHistoryList.innerHTML = m.leaves.length === 0
         ? '<div class="empty-leaves"><div class="empty-icon">🎉</div>暂无请假记录，全勤！</div>'
-        : m.leaves.map(l => `<div class="leave-item"><div class="leave-date">📅 ${fmtDate(l.date)}</div><div class="leave-reason">${l.reason}</div></div>`).join('');
+        : m.leaves.map(l => `<div class="leave-item"><div class="leave-date">${fmtDate(l.date)}</div><div class="leave-reason">${l.reason}</div></div>`).join('');
       leaveHistoryModal.classList.add('show');
     }
 
@@ -605,8 +646,8 @@
       renderSettings();
       settingsOverlay.classList.add('show');
     }
-    function closeSettings() {
-      // Auto-save: read all field values back into state
+
+    function syncSettingsToState() {
       document.querySelectorAll('.settings-item').forEach(item => {
         const i = parseInt(item.dataset.midx);
         if (isNaN(i) || !state.members[i]) return;
@@ -616,7 +657,12 @@
           state.members[i][inp.dataset.field] = Math.max(0, parseInt(inp.value) || 0);
         });
       });
+    }
+
+    function closeSettings() {
+      syncSettingsToState();
       ensureValidCurrent();
+      saveState();
       renderAll();
       settingsOverlay.classList.remove('show');
     }
@@ -635,6 +681,7 @@
                 <button type="button" class="role-opt ${isWriter?'active':''}" data-role="主笔">主笔</button>
                 <button type="button" class="role-opt ${!isWriter?'active':''}" data-role="审核">审核</button>
               </div>
+              <button type="button" class="settings-delete-btn" data-midx="${i}" title="删除成员">✕</button>
             </div>
             <div class="settings-fields">
               <div class="writer-fields-group${isWriter?'':' hidden'}">
@@ -644,15 +691,38 @@
               <label>完成 <input type="number" min="0" value="${m.completed}" data-field="completed"></label>
               <div class="reviewer-leave-field${isWriter?' hidden':''}">
                 <span class="leave-count-tag">请假 ${m.leaves.length}次</span>
-                <button type="button" class="leave-edit-btn" data-midx="${i}">✏️ 编辑</button>
+                <button type="button" class="leave-edit-btn" data-midx="${i}">编辑</button>
               </div>
             </div>
           </div>`;
       }).join('');
     }
 
-    // Role toggle click → show/hide role-specific fields
     settingsBody.addEventListener('click', e => {
+      // Delete member
+      const delBtn = e.target.closest('.settings-delete-btn');
+      if (delBtn) {
+        const midx = parseInt(delBtn.dataset.midx);
+        if (isNaN(midx) || !state.members[midx]) return;
+        const name = state.members[midx].name;
+        if (!confirm(`确定删除成员「${name}」？此操作不可撤销。`)) return;
+        syncSettingsToState();
+        const wasCurrentReviewer = (midx === state.currentReviewerIndex);
+        state.members.splice(midx, 1);
+        if (state.currentReviewerIndex >= state.members.length) {
+          state.currentReviewerIndex = 0;
+        } else if (midx < state.currentReviewerIndex) {
+          state.currentReviewerIndex--;
+        }
+        ensureValidCurrent();
+        saveState();
+        renderSettings();
+        renderAll();
+        showToast(`${name} 已移除`, 'info');
+        return;
+      }
+
+      // Role toggle
       const opt = e.target.closest('.role-opt');
       if (opt) {
         const toggle = opt.closest('.role-toggle-2');
@@ -666,7 +736,8 @@
         if (rf) rf.classList.toggle('hidden', isWriter);
         return;
       }
-      // Leave edit button click
+
+      // Leave edit
       const editBtn = e.target.closest('.leave-edit-btn');
       if (editBtn) {
         const midx = parseInt(editBtn.dataset.midx);
@@ -678,7 +749,7 @@
     settingsCloseBtn.addEventListener('click', closeSettings);
     settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) closeSettings(); });
 
-    /* ========== Leave Editor (in settings) ========== */
+    /* ========== Leave Editor ========== */
     const leaveEditorModal   = $('#leaveEditorModal');
     const leaveEditorTitle   = $('#leaveEditorTitle');
     const leaveEditorList    = $('#leaveEditorList');
@@ -706,7 +777,7 @@
         leaveEditorList.innerHTML = leaves.map((l, li) => `
           <div class="leave-editor-item">
             <div class="le-content">
-              <div class="le-date">📅 ${fmtDate(l.date)}</div>
+              <div class="le-date">${fmtDate(l.date)}</div>
               <div class="le-reason">${l.reason}</div>
             </div>
             <button type="button" class="le-delete" data-li="${li}" title="删除">✕</button>
@@ -714,17 +785,16 @@
       }
     }
 
-    // Delete leave item
     leaveEditorList.addEventListener('click', e => {
       const del = e.target.closest('.le-delete');
       if (!del) return;
       const li = parseInt(del.dataset.li);
       state.members[leaveEditorIdx].leaves.splice(li, 1);
+      saveState();
       renderLeaveEditorList();
       updateSettingsLeaveCount();
     });
 
-    // Add new leave item
     leaveEditorAddBtn.addEventListener('click', () => {
       const reason = leaveEditorReason.value.trim();
       const date = leaveEditorDate.value;
@@ -732,6 +802,7 @@
       if (!date) { showToast('请选择日期', 'warning'); return; }
       state.members[leaveEditorIdx].leaves.push({ date, reason });
       leaveEditorReason.value = '';
+      saveState();
       renderLeaveEditorList();
       updateSettingsLeaveCount();
       showToast('已添加请假记录', 'info');
@@ -747,7 +818,7 @@
 
     leaveEditorCloseBtn.addEventListener('click', () => {
       leaveEditorModal.classList.remove('show');
-      renderReviewers(); // refresh main panel leave counts
+      renderReviewers();
     });
     leaveEditorModal.addEventListener('click', e => {
       if (e.target === leaveEditorModal) {
@@ -773,13 +844,11 @@
       amName.value = '';
       amAvatar.value = '';
       amTarget.value = '8';
-      // Reset role to 主笔
       amRoleToggle.querySelectorAll('.add-role-opt').forEach((b, i) => b.classList.toggle('active', i === 0));
       amTargetRow.classList.remove('am-hidden');
       addMemberModal.classList.add('show');
     });
 
-    // Role toggle in add form
     amRoleToggle.addEventListener('click', e => {
       const opt = e.target.closest('.add-role-opt');
       if (!opt) return;
@@ -788,7 +857,6 @@
       amTargetRow.classList.toggle('am-hidden', opt.dataset.role !== '主笔');
     });
 
-    // Submit
     amSubmitBtn.addEventListener('click', () => {
       const name = amName.value.trim();
       if (!name) { showToast('请输入成员姓名', 'warning'); return; }
@@ -797,29 +865,75 @@
       const color = PALETTE[state.members.length % PALETTE.length];
       const target = role === '主笔' ? Math.max(0, parseInt(amTarget.value) || 0) : 0;
 
-      state.members.push({
-        name,
-        avatar,
-        color,
-        role,
-        target,
-        completed: 0,
-        deduction: 0,
-        leaves: []
-      });
-
+      state.members.push({ name, avatar, color, role, target, completed: 0, deduction: 0, leaves: [] });
+      ensureValidCurrent();
+      saveState();
       addMemberModal.classList.remove('show');
-      renderSettings();   // refresh settings list
-      renderAll();         // refresh main panels
-      showToast(`${name} 已加入团队 🎉`);
+      renderSettings();
+      renderAll();
+      showToast(`${name} 已加入团队`);
     });
 
     amCancelBtn.addEventListener('click', () => addMemberModal.classList.remove('show'));
     addMemberModal.addEventListener('click', e => { if (e.target === addMemberModal) addMemberModal.classList.remove('show'); });
 
+    /* ========== Data Management (Export / Import / Reset) ========== */
+    const exportBtn       = $('#exportBtn');
+    const importBtn       = $('#importBtn');
+    const resetBtn        = $('#resetBtn');
+    const importFileInput = $('#importFileInput');
+
+    exportBtn.addEventListener('click', () => {
+      syncSettingsToState();
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `apc-kepu-data-${todayStr()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('数据已导出');
+    });
+
+    importBtn.addEventListener('click', () => importFileInput.click());
+
+    importFileInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (!Array.isArray(data.members)) throw new Error('invalid');
+          state.members = data.members;
+          state.currentReviewerIndex = data.currentReviewerIndex || 0;
+          ensureValidCurrent();
+          saveState();
+          renderSettings();
+          renderAll();
+          showToast('数据已导入');
+        } catch(err) {
+          showToast('导入失败：文件格式不正确', 'warning');
+        }
+      };
+      reader.readAsText(file);
+      importFileInput.value = '';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('确定恢复为默认数据？当前所有修改将丢失。')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state.members = JSON.parse(JSON.stringify(CONFIG.members));
+      state.currentReviewerIndex = CONFIG.currentReviewerIndex || 0;
+      ensureValidCurrent();
+      renderSettings();
+      renderAll();
+      showToast('已恢复默认数据', 'info');
+    });
+
     /* ========== Init ========== */
     function renderAll() { renderWriters(); renderReviewers(); renderWheel(); }
-    function init() { ensureValidCurrent(); renderAll(); }
+    function init() { ensureValidCurrent(); saveState(); renderAll(); }
     window.addEventListener('resize', renderWheel);
     init();
   </script>
